@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "proton-auth-plugin"
+version = "1.0.0"
+description = "Saleor external-auth plugin: mints a session token for a phone number OTP-verified via proton_identity."
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+dependencies = [
+    # Already present in the Saleor image (saleor's own pyproject.toml pins
+    # "requests~=2.32") — declared here anyway so this package is correctly
+    # self-describing/installable on its own, not silently relying on the
+    # host environment. Deliberately plain `requests`, not Saleor's own
+    # `saleor.core.http_client.HTTPClient` wrapper — see plugin.py's module
+    # docstring for why (that wrapper's SSRF/IP filter would block the
+    # Docker-internal call to proton_identity).
+    "requests>=2.32,<3",
+]
+
+# The exact group name settings.py's plugin-discovery loop looks for
+# (importlib.metadata.entry_points(group="saleor.plugins")) — confirmed by
+# reading saleor/settings.py:914-921 directly, not assumed.
+[project.entry-points."saleor.plugins"]
+proton_auth_plugin = "proton_auth_plugin.plugin:PhoneOtpAuthPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proton_auth_plugin"]
